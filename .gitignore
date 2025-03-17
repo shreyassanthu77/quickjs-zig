@@ -11,3 +11,5 @@ out/
 CMakeUserPresets.json
 fuzz
 .vscode/
+.zig-cache/
+zig-out/
