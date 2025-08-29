@@ -1,24 +1,64 @@
-# ⚡️ QuickJS - A mighty JavaScript engine
+# QuickJS Zig
+[QuickJS ng](https://github.com/quickjs-ng/quickjs) packaged for the [Zig build system](https://ziglang.org/).
 
-## Overview
+> [!NOTE]
+> Requires **Zig 0.15.1** or later.
 
-QuickJS is a small and embeddable JavaScript engine. It aims to support the latest
-[ECMAScript] specification.
+## Installation
 
-This project is a _fork_ of the [original QuickJS project] by Fabrice Bellard and Charlie Gordon, after it went dormant, with the intent of reigniting its development.
+Add QuickJS as a dependency to your project:
 
-## Getting started
+```bash
+zig fetch --save git+https://github.com/shreyassanthu77/quickjs-zig
+```
 
-Head over to the [project website] for instructions on how to get started and more
-documentation.
+In your `build.zig`:
 
-## Authors
+```zig
+const std = @import("std");
 
-[@bnoordhuis], [@saghul], and many more [contributors].
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
 
-[ECMAScript]: https://tc39.es/ecma262/
-[original QuickJS project]: https://bellard.org/quickjs
-[@bnoordhuis]: https://github.com/bnoordhuis
-[@saghul]: https://github.com/saghul
-[contributors]: https://github.com/quickjs-ng/quickjs/graphs/contributors
-[project website]: https://quickjs-ng.github.io/quickjs/
+    // Add QuickJS dependency
+    const quickjs_dep = b.dependency("quickjs_zig", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const quickjs = quickjs_dep.module("quickjs");
+
+    // Your executable
+    const exe = b.addExecutable(.{
+        .name = "your-app",
+        .root_source_file = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .imports = &.{
+                // Add QuickJS module to your executable
+                .{ .name = "quickjs", .module = quickjs },
+            },
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    // ...
+}
+```
+
+## Usage
+
+```zig
+const std = @import("std");
+const qjs = @import("quickjs");
+
+pub fn main() !void {
+    const runtime = qjs.JS_NewRuntime() orelse return error.JS_NewRuntime;
+    defer qjs.JS_FreeRuntime(runtime);
+
+    const context = qjs.JS_NewContext(runtime) orelse return error.JS_NewContext;
+    defer qjs.JS_FreeContext(context);
+
+    // ...
+}
+```
